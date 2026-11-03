@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#153b2d">
+<title>Quiz biblique — Dieu ne nous oublie jamais</title>
+<style>
+:root{--green:#153b2d;--gold:#e8bd62;--cream:#fbf7ee;--ink:#1d2b25;--muted:#64736b;--white:#fff;--red:#a63838;--palegreen:#e7f4eb;--palered:#fae9e7}
+*{box-sizing:border-box}
+body{margin:0;background:linear-gradient(150deg,#102f25,#24543f);font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:var(--ink);min-height:100vh;padding:18px}
+.app{max-width:760px;margin:0 auto}
+header{text-align:center;color:#fff;padding:20px 8px 22px}
+.badge{display:inline-block;border:1px solid #ffffff66;border-radius:99px;padding:6px 12px;font-size:.82rem;letter-spacing:.04em}
+h1{font-size:clamp(1.7rem,5vw,2.6rem);line-height:1.12;margin:16px 0 10px}
+header p{color:#e4eee7;margin:0}
+.card{background:var(--cream);border-radius:22px;padding:clamp(18px,4vw,32px);box-shadow:0 18px 55px #061c1480}
+.topline{display:flex;justify-content:space-between;gap:12px;align-items:center;color:var(--muted);font-size:.92rem;margin-bottom:12px}
+.progress{height:8px;background:#e5e0d5;border-radius:99px;overflow:hidden;margin-bottom:25px}
+.bar{height:100%;width:0;background:var(--gold);transition:width .25s}
+.scripture{color:#6c5220;font-weight:700;font-size:.88rem;margin-bottom:9px}
+.question{font-size:clamp(1.15rem,3vw,1.45rem);line-height:1.4;margin:0 0 20px}
+.instruction{font-size:.9rem;color:var(--muted);margin:-8px 0 17px}
+.options{display:grid;gap:11px}
+.option{width:100%;text-align:left;border:2px solid #dedbd1;background:#fff;border-radius:13px;padding:14px 15px;display:flex;gap:12px;align-items:flex-start;font:inherit;color:var(--ink);cursor:pointer;transition:.15s}
+.option:hover:not(:disabled){border-color:#b99a4c;transform:translateY(-1px)}
+.letter{flex:0 0 29px;height:29px;display:grid;place-items:center;border-radius:8px;background:#f0ece2;font-weight:800;font-size:.88rem}
+.option:disabled{cursor:default}
+.option.correct{border-color:#33865a;background:var(--palegreen)}
+.option.correct .letter{background:#33865a;color:#fff}
+.option.wrong{border-color:#c45b52;background:var(--palered)}
+.option.wrong .letter{background:#c45b52;color:#fff}
+.feedback{display:none;margin-top:18px;border-radius:13px;padding:15px;line-height:1.5}
+.feedback.show{display:block}
+.feedback.good{background:var(--palegreen);border-left:5px solid #33865a}
+.feedback.bad{background:var(--palered);border-left:5px solid #c45b52}
+.feedback strong{display:block;margin-bottom:4px}
+.actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:22px}
+button.primary,button.secondary{border:0;border-radius:12px;padding:13px 18px;font:inherit;font-weight:750;cursor:pointer}
+button.primary{background:var(--green);color:#fff;flex:1}
+button.primary:disabled{opacity:.4;cursor:not-allowed}
+button.secondary{background:#ebe5d8;color:var(--ink)}
+.smallnote{color:var(--muted);font-size:.82rem;margin:18px 0 0;line-height:1.5}
+.result{text-align:center;display:none}
+.result.show{display:block}
+.result .score{font-size:3.2rem;font-weight:850;color:var(--green);margin:12px 0}
+.result h2{font-size:1.7rem}
+.result p{line-height:1.6}
+footer{text-align:center;color:#d8e6dc;font-size:.82rem;padding:18px 8px 4px}
+@media(max-width:430px){body{padding:10px}.card{border-radius:17px}.option{padding:12px}.topline{font-size:.84rem}}
+</style>
+</head>
+<body>
+<div class="app">
+<header>
+<div class="badge">GROUPE DE PRIÈRE · QUIZ BIBLIQUE</div>
+<h1>Dieu ne nous oublie jamais</h1>
+<p>20 questions pour méditer la Parole de Dieu</p>
+</header>
+<main class="card" id="quizCard">
+<div id="quizView">
+<div class="topline"><span id="counter">Question 1 sur 20</span><span id="scoreLive">Score : 0</span></div>
+<div class="progress"><div class="bar" id="bar"></div></div>
+<div class="scripture" id="reference"></div>
+<h2 class="question" id="question"></h2>
+<p class="instruction" id="instruction">Choisis la meilleure réponse.</p>
+<div class="options" id="options"></div>
+<div class="feedback" id="feedback" aria-live="polite"></div>
+<div class="actions"><button class="primary" id="next" disabled>Question suivante →</button></div>
+<p class="smallnote">La correction apparaît dès que tu sélectionnes une réponse. Pour les questions à réponses multiples, sélectionne toutes les réponses que tu juges justes, puis valide.</p>
+</div>
+<div class="result" id="resultView">
+<div class="badge" style="background:#e8bd62;color:#153b2d;border:0">QUIZ TERMINÉ</div>
+<h2>Merci d’avoir médité la Parole !</h2>
+<div class="score" id="finalScore">0/20</div>
+<p id="resultMessage"></p>
+<p>Versets à relire : Ésaïe 49:15-16, Psaume 27:10, Psaume 46:2, Proverbes 3:5-6 et Galates 6:9.</p>
+<div class="actions"><button class="primary" id="restart">Recommencer le quiz ↻</button><button class="secondary" id="share">Partager le quiz</button></div>
+<p class="smallnote" id="shareNote"></p>
+</div>
+</main>
+<footer>« Quand mon père et ma mère m’abandonnent, l’Éternel me recueillera. » — Psaume 27:10</footer>
+</div>
+<script>
+const questions = [
+{ref:"Ésaïe 49:15",type:"one",q:"Quelle promesse Dieu fait-il à son peuple dans ce verset ?",opts:["Je ne t’oublierai point","Tu ne connaîtras aucune épreuve","Tous les hommes t’aimeront","Tu obtiendras tout immédiatement"],a:[0],why:["Dieu affirme qu’il n’oubliera pas son peuple, même en évoquant l’image d’une mère et de son enfant.","Le verset ne promet pas l’absence de toute épreuve.","Le passage ne garantit pas que tous les hommes aimeront son peuple.","Le verset ne promet pas que toutes les demandes seront satisfaites immédiatement."]},
+{ref:"Psaume 27:10",type:"one",q:"Que fera l’Éternel si le père et la mère de David l’abandonnent ?",opts:["Il le condamnera","Il le recueillera","Il lui demandera de se venger","Il l’empêchera de prier"],a:[1],why:["Le verset ne parle pas de condamnation, mais de l’accueil de David par l’Éternel.","David affirme que même si ses parents l’abandonnent, l’Éternel le recueillera.","Aucune vengeance n’est prescrite dans ce verset.","Le texte ne dit pas que David sera empêché de prier."]},
+{ref:"Ésaïe 49:16",type:"one",q:"Quelle image Dieu utilise-t-il pour montrer qu’il se souvient de son peuple ?",opts:["Un nom écrit sur une porte","Une lumière dans le ciel","Un peuple gravé sur ses mains","Une maison bâtie dans le désert"],a:[2],why:["Le verset ne mentionne pas une porte.","Cette image n’est pas celle utilisée dans ce passage.","Dieu déclare : « Je t’ai gravée sur mes mains », image d’un souvenir durable.","Cette image ne figure pas dans le verset."]},
+{ref:"Psaume 46:2",type:"one",q:"Comment Dieu est-il décrit pour ceux qui traversent la détresse ?",opts:["Comme un refuge et un appui","Comme une richesse garantie","Comme un juge absent","Comme une force réservée aux rois"],a:[0],why:["Le psaume présente Dieu comme un refuge, un appui et un secours dans la détresse.","Le verset ne promet pas une richesse matérielle.","Le texte affirme au contraire que Dieu est un secours qui ne manque jamais.","Le secours de Dieu n’est pas réservé aux rois dans ce passage."]},
+{ref:"Ésaïe 49:15-16 et Psaume 27:10",type:"one",q:"Quel enseignement principal ces passages donnent-ils sur l’abandon humain ?",opts:["L’abandon prouve que Dieu nous rejette","Les proches ne peuvent jamais décevoir","L’abandon humain n’annule pas la fidélité de Dieu","Il faut renoncer à toute relation"],a:[2],why:["Ces textes distinguent l’abandon humain de la fidélité de Dieu.","Psaume 27:10 envisage la possibilité d’un abandon par les proches.","Les passages montrent que Dieu demeure fidèle même lorsque les relations humaines échouent.","Ces versets n’enseignent pas qu’il faut se couper des autres."]},
+{ref:"Galates 6:9 et 1 Thessaloniciens 5:17",type:"multi",q:"Quelles attitudes sont encouragées dans la vie de foi ? Sélectionne toutes les bonnes réponses.",opts:["Continuer à prier","Persévérer dans le bien","Conclure que Dieu nous rejette dès que la réponse tarde","Cesser définitivement de faire confiance à Dieu"],a:[0,1],why:["La prière entretient la communion avec Dieu et permet de lui confier nos inquiétudes.","Galates 6:9 encourage à ne pas se lasser de faire le bien.","Un délai ne prouve pas que Dieu a abandonné une personne.","Le message biblique encourage la persévérance et la confiance."]},
+{ref:"Ésaïe 49:15",type:"tf",q:"Ésaïe 49:15 affirme que Dieu n’oubliera pas son peuple, même en évoquant l’amour d’une mère pour son enfant.",opts:["Vrai","Faux"],a:[0],why:["Le verset utilise cette comparaison pour souligner la fidélité de Dieu.","Le verset affirme explicitement que Dieu n’oubliera pas son peuple."]},
+{ref:"Psaume 27:10",type:"tf",q:"Psaume 27:10 enseigne que David n’a plus aucun espoir si ses parents l’abandonnent.",opts:["Vrai","Faux"],a:[1],why:["David ne perd pas toute espérance : il affirme que l’Éternel le recueillera.","David place son espérance en Dieu malgré la possibilité d’un abandon par ses parents."]},
+{ref:"Proverbes 3:5",type:"one",q:"En qui devons-nous nous confier de tout notre cœur ?",opts:["Uniquement dans nos capacités","Dans l’Éternel","Dans les richesses matérielles","Dans l’approbation de tous"],a:[1],why:["Le passage met en garde contre le fait de s’appuyer uniquement sur sa propre intelligence.","Proverbes 3:5 nous appelle à nous confier en l’Éternel de tout notre cœur.","Le verset ne présente pas les richesses comme le fondement de la confiance.","Le texte invite à faire confiance à Dieu, pas à dépendre de l’approbation de tous."]},
+{ref:"1 Thessaloniciens 5:17",type:"one",q:"Quelle exhortation ce verset donne-t-il concernant la prière ?",opts:["Prier sans cesse","Prier uniquement le dimanche","Prier seulement après une réussite","Laisser les autres prier à notre place"],a:[0],why:["Le verset dit : « Priez sans cesse », encourageant une communion régulière avec Dieu.","Le texte ne limite pas la prière à un jour de la semaine.","La prière n’est pas réservée aux moments de réussite.","L’exhortation s’adresse directement aux croyants."]},
+{ref:"Galates 6:9",type:"one",q:"Pourquoi ne devons-nous pas nous lasser de faire le bien ?",opts:["Nous moissonnerons au temps convenable si nous persévérons","Nous éviterons toutes les difficultés","Les hommes nous remercieront toujours","Nous deviendrons immédiatement riches"],a:[0],why:["Le verset encourage à persévérer, car nous moissonnerons au temps convenable si nous ne nous relâchons pas.","Le texte ne promet pas l’absence de difficultés.","Le verset ne garantit pas que les hommes remercieront toujours nos bonnes actions.","Il parle d’une moisson au temps convenable, pas d’un enrichissement immédiat garanti."]},
+{ref:"Psaume 139:1-3",type:"multi",q:"Selon ces versets, que connaît Dieu au sujet de l’être humain ? Sélectionne toutes les bonnes réponses.",opts:["Ses déplacements et ses voies","Ses pensées","Uniquement ses paroles publiques","Seulement ses réussites professionnelles"],a:[0,1],why:["Le psaume évoque les mouvements et les voies de la personne.","Le texte indique que Dieu comprend de loin les pensées de la personne.","Le passage décrit une connaissance plus large que les seules paroles publiques.","Le psaume ne limite pas la connaissance de Dieu aux réussites professionnelles."]},
+{ref:"Ésaïe 49:16",type:"one",q:"Que symbolise principalement l’image du peuple gravé sur les mains de Dieu ?",opts:["Dieu oublie rapidement son peuple","Le souvenir et l’attention de Dieu envers son peuple","Dieu ignore sa situation","Dieu ne s’intéresse qu’aux bâtiments"],a:[1],why:["L’image souligne au contraire que le peuple reste présent devant Dieu.","Une gravure durable évoque le fait que Dieu n’a pas oublié son peuple.","Le contexte indique que la situation de son peuple reste devant ses yeux.","Le passage parle du peuple et de sa situation, pas seulement de bâtiments."]},
+{ref:"Application du message",type:"one",q:"Si une personne prie depuis longtemps sans voir de changement, quelle attitude est la plus appropriée ?",opts:["Conclure que Dieu l’a rejetée","Abandonner toute prière","Continuer à prier et à faire confiance à Dieu","Considérer chaque difficulté comme une punition"],a:[2],why:["L’absence de changement visible ne suffit pas à conclure que Dieu a rejeté cette personne.","Le message encourage la persévérance dans la prière.","Les textes encouragent à s’appuyer sur la fidélité de Dieu sans prétendre connaître le calendrier de sa réponse.","Ces passages ne disent pas que chaque difficulté est une punition divine."]},
+{ref:"Psaume 46:2",type:"tf",q:"Psaume 46:2 décrit Dieu comme un secours qui ne manque jamais dans la détresse.",opts:["Vrai","Faux"],a:[0],why:["Le verset présente Dieu comme un refuge, un appui et un secours qui ne manque jamais dans la détresse.","Cette affirmation correspond au sens du verset dans la traduction citée."]},
+{ref:"Proverbes 3:6",type:"one",q:"Selon Proverbes 3:6, que devons-nous faire de Dieu dans toutes nos voies ?",opts:["Le reconnaître","L’ignorer jusqu’à la réussite","Ne le consulter qu’en cas de crise","Le remplacer par notre seule intelligence"],a:[0],why:["Le passage appelle à reconnaître Dieu dans toutes nos voies et indique qu’il aplanira nos sentiers.","Le texte encourage à reconnaître Dieu en tout temps, pas seulement après une réussite.","Le passage ne limite pas la relation avec Dieu aux crises.","Proverbes 3:5-6 invite à se confier en Dieu plutôt qu’à s’appuyer uniquement sur sa propre intelligence."]},
+{ref:"Psaume 23:4",type:"one",q:"Dans Psaume 23:4, pourquoi David dit-il qu’il ne craint aucun mal dans la vallée de l’ombre de la mort ?",opts:["Parce qu’il n’aura jamais de difficultés","Parce que Dieu est avec lui","Parce qu’il est plus fort que tous ses ennemis","Parce qu’il connaît déjà chaque événement futur"],a:[1],why:["Le psaume ne promet pas une vie sans difficultés.","David trouve son courage dans la présence de Dieu : « car tu es avec moi ».","Le verset met l’accent sur la présence de Dieu, pas sur une supériorité personnelle absolue.","Le texte ne dit pas que David connaît chaque événement futur."]},
+{ref:"Romains 8:38-39",type:"one",q:"Selon Romains 8:38-39, qu’est-ce qui pourra nous séparer de l’amour de Dieu manifesté en Jésus-Christ ?",opts:["Toute épreuve difficile","Le rejet des hommes","Aucune des réalités énumérées ne peut nous séparer de cet amour","Le passage ne parle pas de l’amour de Dieu"],a:[2],why:["Le passage affirme que les difficultés énumérées ne peuvent pas séparer les croyants de l’amour de Dieu.","Le rejet humain n’est pas présenté comme capable d’annuler l’amour de Dieu.","Paul affirme que ni la mort, ni la vie, ni les puissances, ni aucune autre créature ne pourra nous séparer de l’amour de Dieu en Jésus-Christ.","Le passage parle explicitement de l’amour de Dieu en Jésus-Christ."]},
+{ref:"Matthieu 6:26",type:"one",q:"Dans Matthieu 6:26, Jésus invite à observer les oiseaux pour rappeler que le Père céleste…",opts:["Ignore les besoins de ses créatures","Les nourrit et connaît leurs besoins","Garantit à chacun une vie sans effort","Ne prend soin que des plus riches"],a:[1],why:["Jésus invite à constater que le Père céleste nourrit les oiseaux.","C’est l’image utilisée par Jésus pour encourager la confiance en la sollicitude du Père.","Le passage enseigne la confiance, pas une vie sans aucun effort.","Le verset ne réserve pas les soins du Père aux riches."]},
+{ref:"Psaume 27:14",type:"one",q:"Quel conseil Psaume 27:14 donne-t-il à celui qui attend l’Éternel ?",opts:["Prends courage et que ton cœur s’affermisse","Abandonne dès que tu es fatigué","Ne demande plus jamais de secours","Compare ton parcours à celui des autres"],a:[0],why:["Le verset encourage à espérer en l’Éternel, à prendre courage et à affermir son cœur.","Le psaume appelle à attendre l’Éternel avec courage, pas à abandonner.","Le texte ne demande pas de renoncer à demander du secours.","La comparaison avec les autres n’est pas le conseil donné dans ce verset."]}
+];
+let index=0, score=0, answered=false, selected=new Set(), results=[];
+const $=id=>document.getElementById(id);
+function render(){
+ answered=false;selected=new Set();
+ const q=questions[index];
+ $("counter").textContent=`Question ${index+1} sur ${questions.length}`;
+ $("scoreLive").textContent=`Score : ${score}`;
+ $("bar").style.width=`${index/questions.length*100}%`;
+ $("reference").textContent=q.ref;
+ $("question").textContent=q.q;
+ $("instruction").textContent=q.type==="multi"?"Sélectionne toutes les bonnes réponses, puis valide.":q.type==="tf"?"Choisis Vrai ou Faux.":"Choisis la meilleure réponse.";
+ $("feedback").className="feedback";$("feedback").innerHTML="";
+ $("next").disabled=true;$("next").textContent=index===questions.length-1?"Voir mon résultat →":"Question suivante →";
+ const opts=$("options");opts.innerHTML="";
+ q.opts.forEach((label,i)=>{
+  const b=document.createElement("button");b.className="option";b.type="button";b.dataset.i=i;
+  const letter=q.type==="tf"?(i===0?"V":"F"):String.fromCharCode(65+i);
+  b.innerHTML=`<span class="letter">${letter}</span><span>${label}</span>`;
+  b.addEventListener("click",()=>choose(i,b));opts.appendChild(b);
+ });
+ if(q.type==="multi"){
+  const validate=document.createElement("button");validate.className="secondary";validate.style.marginTop="12px";validate.textContent="Valider mes réponses";
+  validate.id="validateMulti";validate.disabled=true;validate.addEventListener("click",validateMulti);opts.after(validate);
+ }else{
+  const old=$("validateMulti");if(old)old.remove();
+ }
+}
+function choose(i,b){
+ const q=questions[index];if(answered)return;
+ if(q.type==="multi"){
+  if(selected.has(i)){selected.delete(i);b.classList.remove("selected");b.style.borderColor="";b.style.background="#fff";}
+  else{selected.add(i);b.classList.add("selected");b.style.borderColor="#b99a4c";b.style.background="#fff8e7";}
+  $("validateMulti").disabled=selected.size===0;return;
+ }
+ answered=true;const correct=q.a.includes(i);if(correct)score++;results.push({correct,selected:[i]});
+ [...$("options").children].forEach((el,j)=>{el.disabled=true;if(q.a.includes(j))el.classList.add("correct");else if(j===i)el.classList.add("wrong")});
+ showFeedback(q,[i]);$("next").disabled=false;$("scoreLive").textContent=`Score : ${score}`;
+}
+function validateMulti(){
+ const q=questions[index];if(answered||selected.size===0)return;answered=true;
+ const chosen=[...selected].sort((a,b)=>a-b),correct=[...q.a].sort((a,b)=>a-b);
+ const ok=chosen.length===correct.length&&chosen.every((v,i)=>v===correct[i]);if(ok)score++;
+ results.push({correct:ok,selected:chosen});
+ [...$("options").children].forEach((el,j)=>{el.disabled=true;if(q.a.includes(j))el.classList.add("correct");else if(selected.has(j))el.classList.add("wrong")});
+ $("validateMulti").disabled=true;showFeedback(q,chosen,ok);$("next").disabled=false;$("scoreLive").textContent=`Score : ${score}`;
+}
+function showFeedback(q,chosen,explicitCorrect){
+ const ok=explicitCorrect!==undefined?explicitCorrect:(chosen.length===q.a.length&&chosen.every(v=>q.a.includes(v)));
+ const fb=$("feedback");fb.className=`feedback show ${ok?"good":"bad"}`;
+ let text=q.a.map(i=>q.why[i]).join(" ");
+ fb.innerHTML=`<strong>${ok?"Bonne réponse !":"Pas tout à fait."}</strong>${text}`;
+}
+$("next").addEventListener("click",()=>{
+ if(!answered)return;
+ const v=$("validateMulti");if(v)v.remove();
+ index++;
+ if(index<questions.length)render();else finish();
+});
+function finish(){
+ $("quizView").style.display="none";$("resultView").classList.add("show");$("bar").style.width="100%";
+ $("finalScore").textContent=`${score}/${questions.length}`;
+ const pct=score/questions.length;
+ $("resultMessage").textContent=pct>=.85?"Excellent ! Tu maîtrises très bien les passages étudiés. Continue à méditer la Parole et à encourager le groupe.":pct>=.6?"Bravo pour ta participation ! Relis les versets des questions manquées et continue à grandir dans la Parole.":"Merci d’avoir participé ! Ce quiz est une occasion d’apprendre : relis les références bibliques et recommence pour progresser.";
+}
+$("restart").addEventListener("click",()=>{index=0;score=0;results=[];$("resultView").classList.remove("show");$("quizView").style.display="block";render();});
+$("share").addEventListener("click",async()=>{
+ const text="Quiz biblique : Dieu ne nous oublie jamais — 20 questions interactives. Ouvre le fichier HTML du quiz dans ton navigateur.";
+ if(navigator.share){try{await navigator.share({title:document.title,text,url:location.href})}catch(e){}}
+ else if(navigator.clipboard){try{await navigator.clipboard.writeText(location.href);$("shareNote").textContent="Lien copié si le quiz est hébergé en ligne. Pour l’instant, partage le fichier HTML téléchargé."}catch(e){$("shareNote").textContent=text}}
+ else $("shareNote").textContent=text;
+});
+render();
+</script>
+</body>
+</html>
